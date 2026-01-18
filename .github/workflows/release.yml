@@ -1,0 +1,58 @@
+name: Build and Release CLI
+
+on:
+  push:
+    tags:
+      - 'v*' # Trigger on version tags
+
+jobs:
+  build:
+    name: Build Binary
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            artifact_name: modernizer-linux
+          - os: windows-latest
+            artifact_name: modernizer.exe
+          - os: macos-latest
+            artifact_name: modernizer-mac
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Dependencies
+        run: pip install .[dev]
+
+      - name: Build with PyInstaller
+        # Create a single file executable
+        run: |
+          pyinstaller --onefile --name ${{ matrix.artifact_name }} --hidden-import=typer --hidden-import=rich src/modernizer/main.py
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: dist/${{ matrix.artifact_name }}*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            modernizer-linux/modernizer-linux
+            modernizer-mac/modernizer-mac
+            modernizer.exe/modernizer.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
