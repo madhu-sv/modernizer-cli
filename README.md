@@ -37,8 +37,10 @@ Maven or Gradle installed (or available via wrappers in your target projects)
 
 2. Clone the Repository
    
-  git clone https://github.com/your-username/modernizer-cli.git
-  cd modernizer-cli
+  ```
+   git clone https://github.com/your-username/modernizer-cli.git
+   cd modernizer-cli
+  ```
   
 3. Create a Virtual Environment
 We recommend using venv to keep dependencies isolated.
